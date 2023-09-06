@@ -8,28 +8,22 @@
 #include <stdio.h>
 #include "cbmp.h"
 
-//Function to invert pixels of an image (negative)
-void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
+void greyscale (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]){
   for (int x = 0; x < BMP_WIDTH; x++)
   {
     for (int y = 0; y < BMP_HEIGTH; y++)
     {
-      for (int c = 0; c < BMP_CHANNELS; c++)
-      {
-      output_image[x][y][c] = 255 - input_image[x][y][c];
-      }
-    }
+      greyscale_image[x][y] = (input_image[x][y][0]+input_image[x][y][1]+input_image[x][y][2])/3;
+    } 
   }
 }
 
-void blacknwhite (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
-  for (int x = 0; x < BMP_WIDTH; x++)
-  {
-    for (int y = 0; y < BMP_HEIGTH; y++)
-    {
-      for (int c = 0; c < BMP_CHANNELS; c++)
-      {
-      output_image[x][y][c] = (input_image[x][y][0]+input_image[x][y][1]+input_image[x][y][2])/3;
+void array_to_image_converter (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
+  for (int x = 0; x < BMP_WIDTH; x++){
+    for (int y = 0; x < BMP_HEIGTH; y++){
+      int rgb_color = greyscale_image[x][y];
+      for (int c = 0; c < BMP_CHANNELS; c++){
+        output_image[x][y][c] = rgb_color;
       }
     }
   }
@@ -37,6 +31,7 @@ void blacknwhite (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]
 
   //Declaring the array to store the image (unsigned char = unsigned 8 bit)
   unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+  unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
   unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 
 //Main function
@@ -59,8 +54,11 @@ int main(int argc, char** argv)
   //Load image from file
   read_bitmap(argv[1], input_image);
 
-  //Run inversion
-  blacknwhite(input_image,output_image);
+  //Run greyscale from image
+  greyscale(input_image,greyscale_image);
+
+  //Convert greyscale 2D array to image
+  array_to_image_converter(greyscale_image,output_image);
 
   //Save image to file
   write_bitmap(output_image, argv[2]);
