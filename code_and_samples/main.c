@@ -22,6 +22,19 @@ void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsi
   }
 }
 
+void blacknwhite (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGTH; y++)
+    {
+      for (int c = 0; c < BMP_CHANNELS; c++)
+      {
+      output_image[x][y][c] = (input_image[x][y][0]+input_image[x][y][1]+input_image[x][y][2])/3;
+      }
+    }
+  }
+}
+
   //Declaring the array to store the image (unsigned char = unsigned 8 bit)
   unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
   unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -47,7 +60,7 @@ int main(int argc, char** argv)
   read_bitmap(argv[1], input_image);
 
   //Run inversion
-  invert(input_image,output_image);
+  blacknwhite(input_image,output_image);
 
   //Save image to file
   write_bitmap(output_image, argv[2]);
