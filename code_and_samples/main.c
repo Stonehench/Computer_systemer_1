@@ -20,7 +20,7 @@ void greyscale (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
 
 void array_to_image_converter (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
   for (int x = 0; x < BMP_WIDTH; x++){
-    for (int y = 0; x < BMP_HEIGTH; y++){
+    for (int y = 0; y < BMP_HEIGTH; y++){
       unsigned char rgb_color = greyscale_image[x][y];
       output_image[x][y][0] = rgb_color;
       output_image[x][y][1] = rgb_color;
