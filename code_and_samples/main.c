@@ -18,6 +18,20 @@ void greyscale (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
   }
 }
 
+void threshold (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH], unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH]){
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGTH; y++)
+    {
+      if (greyscale_image[x][y] <= 90) {
+        binary_image[x][y] = 0;
+      } else {
+        binary_image[x][y] = 255;
+      }
+    } 
+  }
+}
+
 void array_to_image_converter (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
   for (int x = 0; x < BMP_WIDTH; x++){
     for (int y = 0; y < BMP_HEIGTH; y++){
@@ -32,6 +46,7 @@ void array_to_image_converter (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIG
   //Declaring the array to store the image (unsigned char = unsigned 8 bit)
   unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
   unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
+  unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
   unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 
 //Main function
@@ -54,8 +69,12 @@ int main(int argc, char** argv)
   greyscale(input_image,greyscale_image);
   printf("Converted into grayscale\n");
 
+  //Converts greyscale image to binary image
+  threshold(greyscale_image, binary_image);
+  printf("Converted into binary \n");
+
   //Convert greyscale 2D array to image
-  array_to_image_converter(greyscale_image,output_image);
+  array_to_image_converter(binary_image,output_image);
   printf("converted into output img\n");
 
   //Save image to file
