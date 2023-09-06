@@ -2,7 +2,7 @@
 //To run (linux/mac): ./main.out example.bmp example_inv.bmp
 
 //To compile (win): gcc cbmp.c main.c -o main.exe -std=c99
-//To run (win): main.exe example.bmp example_inv.bmp
+//To run (win): .\main.exe example.bmp example_inv.bmp
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,10 +21,10 @@ void greyscale (unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], 
 void array_to_image_converter (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]){
   for (int x = 0; x < BMP_WIDTH; x++){
     for (int y = 0; x < BMP_HEIGTH; y++){
-      int rgb_color = greyscale_image[x][y];
-      for (int c = 0; c < BMP_CHANNELS; c++){
-        output_image[x][y][c] = rgb_color;
-      }
+      unsigned char rgb_color = greyscale_image[x][y];
+      output_image[x][y][0] = rgb_color;
+      output_image[x][y][1] = rgb_color;
+      output_image[x][y][2] = rgb_color;
     }
   }
 }
@@ -37,11 +37,6 @@ void array_to_image_converter (unsigned char greyscale_image[BMP_WIDTH][BMP_HEIG
 //Main function
 int main(int argc, char** argv)
 {
-  //argc counts how may arguments are passed
-  //argv[0] is a string with the name of the program
-  //argv[1] is the first command line argument (input image)
-  //argv[2] is the second command line argument (output image)
-
   //Checking that 2 arguments are passed
   if (argc != 3)
   {
@@ -53,12 +48,15 @@ int main(int argc, char** argv)
 
   //Load image from file
   read_bitmap(argv[1], input_image);
+  printf("Read bitmap from file\n");
 
   //Run greyscale from image
   greyscale(input_image,greyscale_image);
+  printf("Converted into grayscale\n");
 
   //Convert greyscale 2D array to image
   array_to_image_converter(greyscale_image,output_image);
+  printf("converted into output img\n");
 
   //Save image to file
   write_bitmap(output_image, argv[2]);
