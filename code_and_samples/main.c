@@ -119,10 +119,10 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
     capture(eroded_image);
     for (int i = 0; i < BMP_WIDTH; i++) {
       for (int j = 0; j < BMP_HEIGTH; j++) {
-        eroded_image[0][j]=0;
-        eroded_image[BMP_WIDTH-1][j] = 0;
+        eroded_image[0][j] = 0;
+        eroded_image[BMP_WIDTH - 1][j] = 0;
         eroded_image[i][0] = 0;
-        eroded_image[i][BMP_HEIGTH-1] = 0;
+        eroded_image[i][BMP_HEIGTH - 1] = 0;
         binary[i][j] = eroded_image[i][j];
       }
     }
@@ -138,53 +138,25 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char red_cross[BMP_WIDTH][BMP_HEIGTH]) {
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
-      if(red_cross[i][j] == 1){
-        input[i][j][0] = 255;
-        input[i][j][1] = 0;
-        input[i][j][2] = 0;
-        input[i+1][j][0] = 255;
-        input[i+1][j][1] = 0;
-        input[i+1][j][2] = 0;
-        input[i+2][j][0] = 255;
-        input[i+2][j][1] = 0;
-        input[i+2][j][2] = 0;
-        input[i+3][j][0] = 255;
-        input[i+3][j][1] = 0;
-        input[i+3][j][2] = 0;
-        input[i-1][j][0] = 255;
-        input[i-1][j][1] = 0;
-        input[i-1][j][2] = 0;
-        input[i-2][j][0] = 255;
-        input[i-2][j][1] = 0;
-        input[i-2][j][2] = 0;
-        input[i-3][j][0] = 255;
-        input[i-3][j][1] = 0;
-        input[i-3][j][2] = 0;
-        input[i][j+1][0] = 255;
-        input[i][j+1][1] = 0;
-        input[i][j+1][2] = 0;
-        input[i][j+2][0] = 255;
-        input[i][j+2][1] = 0;
-        input[i][j+2][2] = 0;
-        input[i][j+3][0] = 255;
-        input[i][j+3][1] = 0;
-        input[i][j+3][2] = 0;
-        input[i][j-1][0] = 255;
-        input[i][j-1][1] = 0;
-        input[i][j-1][2] = 0;
-        input[i][j-2][0] = 255;
-        input[i][j-2][1] = 0;
-        input[i][j-2][2] = 0;
-        input[i][j-3][0] = 255;
-        input[i][j-3][1] = 0;
-        input[i][j-3][2] = 0;
+      if (red_cross[i][j] == 1) {
+        int cross_size;
+        for (int k = -cross_size; k <= cross_size; k++) {
+          input[i+k][j][0] = 255;
+          input[i+k][j][1] = 0;
+          input[i+k][j][2] = 0;
+          for (int l = -cross_size; l <= cross_size; l++) {
+            input[i][j+l][0] = 255;
+          input[i][j+l][1] = 0;
+          input[i][j+l][2] = 0;
+          }
+        }
       }
     }
   }
 
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
-      for (int k = 0; k < BMP_CHANNELS; k++){
+      for (int k = 0; k < BMP_CHANNELS; k++) {
         output_image[i][j][k] = input[i][j][k];
       }
     }
@@ -219,7 +191,7 @@ int main(int argc, char **argv) {
   printf("Eroded image \n");
 
   // Prints red cross on original image
-  red_cross(input_image,red_cross_image);
+  red_cross(input_image, red_cross_image);
   printf("Printed red cross' \n");
 
   // // Convert greyscale 2D array to image
