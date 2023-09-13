@@ -15,10 +15,9 @@ unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH];
-unsigned char captured_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char red_cross_image[BMP_WIDTH][BMP_HEIGTH];
+unsigned char eroded_output_images[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char output_image2[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 int Captured_spots = 0;
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
@@ -68,6 +67,7 @@ void capture_part_2(int x, int y,
           for (int p = 0; p < capture_area; p++) {
             eroded_image[x + o][y + p] = 0;
             detect_spots[x + o][y + p] = 0;
+            red_cross_image[x + 5][y + 5] = 1;
           }
         }
         printf("Captured spot %i\n", Captured_spots);
@@ -105,8 +105,8 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
   while (allBlack) {
     counter++;
     allBlack = 0;
-    for (int x = 1; x < BMP_WIDTH; x++) {
-      for (int y = 1; y < BMP_HEIGTH; y++) {
+    for (int x = 0; x < BMP_WIDTH; x++) {
+      for (int y = 0; y < BMP_HEIGTH; y++) {
         eroded_image[x][y] = binary[x][y];
         if (binary[x][y] == 255 &&
             (binary[x - 1][y] == 0 || binary[x + 1][y] == 0 ||
@@ -119,14 +119,75 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
     capture(eroded_image);
     for (int i = 0; i < BMP_WIDTH; i++) {
       for (int j = 0; j < BMP_HEIGTH; j++) {
+        eroded_image[0][j]=0;
+        eroded_image[BMP_WIDTH-1][j] = 0;
+        eroded_image[i][0] = 0;
+        eroded_image[i][BMP_HEIGTH-1] = 0;
         binary[i][j] = eroded_image[i][j];
       }
     }
     printf("Eroded image %i times\n", counter);
     char filename[256];
     sprintf(filename, "./eroded_images/eroded_image%i.bmp", counter);
-    array_to_image_converter(eroded_image, output_image);
-    write_bitmap(output_image, filename);
+    array_to_image_converter(eroded_image, eroded_output_images);
+    write_bitmap(eroded_output_images, filename);
+  }
+}
+
+void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
+               unsigned char red_cross[BMP_WIDTH][BMP_HEIGTH]) {
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGTH; j++) {
+      if(red_cross[i][j] == 1){
+        input[i][j][0] = 255;
+        input[i][j][1] = 0;
+        input[i][j][2] = 0;
+        input[i+1][j][0] = 255;
+        input[i+1][j][1] = 0;
+        input[i+1][j][2] = 0;
+        input[i+2][j][0] = 255;
+        input[i+2][j][1] = 0;
+        input[i+2][j][2] = 0;
+        input[i+3][j][0] = 255;
+        input[i+3][j][1] = 0;
+        input[i+3][j][2] = 0;
+        input[i-1][j][0] = 255;
+        input[i-1][j][1] = 0;
+        input[i-1][j][2] = 0;
+        input[i-2][j][0] = 255;
+        input[i-2][j][1] = 0;
+        input[i-2][j][2] = 0;
+        input[i-3][j][0] = 255;
+        input[i-3][j][1] = 0;
+        input[i-3][j][2] = 0;
+        input[i][j+1][0] = 255;
+        input[i][j+1][1] = 0;
+        input[i][j+1][2] = 0;
+        input[i][j+2][0] = 255;
+        input[i][j+2][1] = 0;
+        input[i][j+2][2] = 0;
+        input[i][j+3][0] = 255;
+        input[i][j+3][1] = 0;
+        input[i][j+3][2] = 0;
+        input[i][j-1][0] = 255;
+        input[i][j-1][1] = 0;
+        input[i][j-1][2] = 0;
+        input[i][j-2][0] = 255;
+        input[i][j-2][1] = 0;
+        input[i][j-2][2] = 0;
+        input[i][j-3][0] = 255;
+        input[i][j-3][1] = 0;
+        input[i][j-3][2] = 0;
+      }
+    }
+  }
+
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGTH; j++) {
+      for (int k = 0; k < BMP_CHANNELS; k++){
+        output_image[i][j][k] = input[i][j][k];
+      }
+    }
   }
 }
 
@@ -157,12 +218,16 @@ int main(int argc, char **argv) {
   erode(binary_image, eroded_image);
   printf("Eroded image \n");
 
-  // Convert greyscale 2D array to image
-  array_to_image_converter(binary_image, output_image);
-  printf("converted into output img\n");
+  // Prints red cross on original image
+  red_cross(input_image,red_cross_image);
+  printf("Printed red cross' \n");
+
+  // // Convert greyscale 2D array to image
+  // array_to_image_converter(binary_image, output_image);
+  // printf("converted into output img\n");
 
   // Save image to file
-  write_bitmap(output_image, argv[2] + 1);
+  write_bitmap(output_image, argv[2]);
 
   printf("Done!\n");
   return 0;
