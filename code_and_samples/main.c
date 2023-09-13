@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
-int capture_area = 12;
+int capture_area = 14;
 int thresholdint = 90;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
