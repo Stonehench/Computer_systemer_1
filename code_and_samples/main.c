@@ -9,12 +9,17 @@
 #include <stdlib.h>
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
+int capture_area = 12;
+int thresholdint = 90;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH];
+unsigned char captured_image[BMP_WIDTH][BMP_HEIGTH];
+unsigned char red_cross_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char spot_image[12][12][BMP_CHANNELS];
+unsigned char output_image2[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+int Captured_spots = 0;
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]) {
@@ -31,7 +36,7 @@ void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
                unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH]) {
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
-      if (greyscale_image[x][y] <= 90) {
+      if (greyscale_image[x][y] <= thresholdint) {
         binary_image[x][y] = 0;
       } else {
         binary_image[x][y] = 255;
@@ -53,15 +58,42 @@ void array_to_image_converter(
   }
 }
 
-void array_to_image_converter_12x12(
-    unsigned char greyscale_image[12][12],
-    unsigned char output_image[12][12][BMP_CHANNELS]) {
-  for (int x = 0; x < BMP_WIDTH; x++) {
-    for (int y = 0; y < BMP_HEIGTH; y++) {
-      unsigned char rgb_color = greyscale_image[x][y];
-      output_image[x][y][0] = rgb_color;
-      output_image[x][y][1] = rgb_color;
-      output_image[x][y][2] = rgb_color;
+void capture_part_2(int x, int y,
+                    unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
+  for (int m = 0; m < capture_area; m++) {
+    for (int n = 0; n < capture_area; n++) {
+      if (detect_spots[x + m][y + n] == 255) {
+        Captured_spots++;
+        for (int o = 0; o < capture_area; o++) {
+          for (int p = 0; p < capture_area; p++) {
+            eroded_image[x + o][y + p] = 0;
+            detect_spots[x + o][y + p] = 0;
+          }
+        }
+        printf("Captured spot %i\n", Captured_spots);
+      }
+    }
+  }
+}
+
+void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
+  for (int i = 0; i < BMP_WIDTH - capture_area; i++) {
+    for (int j = 0; j < BMP_HEIGTH - capture_area; j++) {
+      int lock = 1;
+      for (int k = 0; k < capture_area; k++) {
+        for (int l = 0; l < capture_area; l++) {
+          if (detect_spots[i + 0][j + l] == 255 ||
+              detect_spots[i + capture_area - 1][j + l] == 255 ||
+              detect_spots[i + k][j + 0] == 255 ||
+              detect_spots[i + k][j + capture_area - 1] == 255) {
+            lock = 0;
+            continue;
+          }
+        }
+      }
+      if (lock) {
+        capture_part_2(i, j, detect_spots);
+      }
     }
   }
 }
@@ -84,41 +116,17 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
         }
       }
     }
+    capture(eroded_image);
     for (int i = 0; i < BMP_WIDTH; i++) {
       for (int j = 0; j < BMP_HEIGTH; j++) {
         binary[i][j] = eroded_image[i][j];
       }
     }
+    printf("Eroded image %i times\n", counter);
     char filename[256];
     sprintf(filename, "./eroded_images/eroded_image%i.bmp", counter);
     array_to_image_converter(eroded_image, output_image);
     write_bitmap(output_image, filename);
-  }
-}
-
-void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH],
-             unsigned char capture_spots[12][12]) {
-  int counter = 0;
-  for (int i = 0; i < BMP_WIDTH - 12; i++) {
-    for (int j = 0; j < BMP_HEIGTH - 12; j++) {
-
-      for (int k = 0; i < 12; i++) {
-        for (int l = 0; j < 12; j++) {
-          capture_spots[k][l] = detect_spots[k][l];
-          if (detect_spots[0][l] == 255 || detect_spots[11][l] == 255 ||
-              detect_spots[k][0] == 255 || detect_spots[k][11] == 255) {
-            continue;
-          } else if (detect_spots[k][l] == 255) {
-            counter++;
-            char filename[256];
-            sprintf(filename, "./Captured_images/captured_image%i.bmp",
-                    counter);
-            array_to_image_converter_12x12(capture_spots, spot_image);
-            write_bitmap(spot_image, filename);
-          }
-        }
-      }
-    }
   }
 }
 
@@ -145,14 +153,9 @@ int main(int argc, char **argv) {
   threshold(greyscale_image, binary_image);
   printf("Converted into binary \n");
 
+  // erodes image
   erode(binary_image, eroded_image);
-
-  // Convert greyscale 2D array to image
-  array_to_image_converter(eroded_image, output_image);
-  printf("converted into output img\n");
-
-  // Save image to file
-  write_bitmap(output_image, argv[2]);
+  printf("Eroded image \n");
 
   // Convert greyscale 2D array to image
   array_to_image_converter(binary_image, output_image);
