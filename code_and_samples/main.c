@@ -14,6 +14,7 @@ unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned char spot_image[12][12][BMP_CHANNELS];
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]) {
@@ -52,6 +53,19 @@ void array_to_image_converter(
   }
 }
 
+void array_to_image_converter_12x12(
+    unsigned char greyscale_image[12][12],
+    unsigned char output_image[12][12][BMP_CHANNELS]) {
+  for (int x = 0; x < BMP_WIDTH; x++) {
+    for (int y = 0; y < BMP_HEIGTH; y++) {
+      unsigned char rgb_color = greyscale_image[x][y];
+      output_image[x][y][0] = rgb_color;
+      output_image[x][y][1] = rgb_color;
+      output_image[x][y][2] = rgb_color;
+    }
+  }
+}
+
 void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
            unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH]) {
   int allBlack = 1;
@@ -70,8 +84,8 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
         }
       }
     }
-    for (int i = 0; i < BMP_WIDTH; i++){
-      for (int j = 0; j < BMP_HEIGTH; j++){
+    for (int i = 0; i < BMP_WIDTH; i++) {
+      for (int j = 0; j < BMP_HEIGTH; j++) {
         binary[i][j] = eroded_image[i][j];
       }
     }
@@ -82,7 +96,31 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
   }
 }
 
+void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH],
+             unsigned char capture_spots[12][12]) {
+  int counter = 0;
+  for (int i = 0; i < BMP_WIDTH - 12; i++) {
+    for (int j = 0; j < BMP_HEIGTH - 12; j++) {
 
+      for (int k = 0; i < 12; i++) {
+        for (int l = 0; j < 12; j++) {
+          capture_spots[k][l] = detect_spots[k][l];
+          if (detect_spots[0][l] == 255 || detect_spots[11][l] == 255 ||
+              detect_spots[k][0] == 255 || detect_spots[k][11] == 255) {
+            continue;
+          } else if (detect_spots[k][l] == 255) {
+            counter++;
+            char filename[256];
+            sprintf(filename, "./Captured_images/captured_image%i.bmp",
+                    counter);
+            array_to_image_converter_12x12(capture_spots, spot_image);
+            write_bitmap(spot_image, filename);
+          }
+        }
+      }
+    }
+  }
+}
 
 // Main function
 int main(int argc, char **argv) {
