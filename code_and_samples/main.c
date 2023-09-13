@@ -70,6 +70,11 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
         }
       }
     }
+    for (int i = 0; i < BMP_WIDTH; i++){
+      for (int j = 0; j < BMP_HEIGTH; j++){
+        binary[i][j] = eroded_image[i][j];
+      }
+    }
     char filename[256];
     sprintf(filename, "./eroded_images/eroded_image%i.bmp", counter);
     array_to_image_converter(eroded_image, output_image);
