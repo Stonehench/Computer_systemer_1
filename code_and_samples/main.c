@@ -190,15 +190,30 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
       if (red_cross[i][j] == 1) {
-        int cross_size = 9;
+        int cross_size=9;
+        int cross_thickness=3;
         for (int k = -cross_size; k <= cross_size; k++) {
           input[i + k][j][0] = 255;
           input[i + k][j][1] = 0;
           input[i + k][j][2] = 0;
           for (int l = -cross_size; l <= cross_size; l++) {
-            input[i][j + l][0] = 255;
-            input[i][j + l][1] = 0;
-            input[i][j + l][2] = 0;
+          input[i][j+l][0] = 255;
+          input[i][j+l][1] = 0;
+          input[i][j+l][2] = 0;
+          for (int m = -cross_thickness; m <= cross_thickness; m++) {
+          input[i+k][j-1][0] = 255;
+          input[i+k][j-1][1] = 0;
+          input[i+k][j-1][2] = 0;
+          input[i+k][j+1][0] = 255;
+          input[i+k][j+1][1] = 0;
+          input[i+k][j+1][2] = 0;
+
+          input[i+1][j+l][0] = 255;
+          input[i+1][j+l][1] = 0;
+          input[i+1][j+l][2] = 0;
+          input[i-1][j+l][0] = 255;
+          input[i-1][j+l][1] = 0;
+          input[i-1][j+l][2] = 0;
           }
         }
       }
@@ -209,10 +224,11 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
     for (int j = 0; j < BMP_HEIGTH; j++) {
       for (int k = 0; k < BMP_CHANNELS; k++) {
         output_image[i][j][k] = input[i][j][k];
-      }
+       }
+     }
     }
   }
-}
+ }
 
 // Main function
 int main(int argc, char **argv) {
