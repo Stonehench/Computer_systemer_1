@@ -136,11 +136,14 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
 
 void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char red_cross[BMP_WIDTH][BMP_HEIGTH]) {
+  
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
-      if (red_cross[i][j] == 1) {
-        int cross_size=9;
-        int cross_thickness=3;
+
+      if (red_cross[i-2][j-2] == 1) {
+        int cross_size=10;
+        int cross_thickness=1;
+
         for (int k = -cross_size; k <= cross_size; k++) {
           input[i+k][j][0] = 255;
           input[i+k][j][1] = 0;
@@ -150,19 +153,13 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
           input[i][j+l][1] = 0;
           input[i][j+l][2] = 0;
           for (int m = -cross_thickness; m <= cross_thickness; m++) {
-          input[i+k][j-1][0] = 255;
-          input[i+k][j-1][1] = 0;
-          input[i+k][j-1][2] = 0;
-          input[i+k][j+1][0] = 255;
-          input[i+k][j+1][1] = 0;
-          input[i+k][j+1][2] = 0;
+          input[i+k][j+m][0] = 255;
+          input[i+k][j+m][1] = 0;
+          input[i+k][j+m][2] = 0;
 
-          input[i+1][j+l][0] = 255;
-          input[i+1][j+l][1] = 0;
-          input[i+1][j+l][2] = 0;
-          input[i-1][j+l][0] = 255;
-          input[i-1][j+l][1] = 0;
-          input[i-1][j+l][2] = 0;
+          input[i+m][j+l][0] = 255;
+          input[i+m][j+l][1] = 0;
+          input[i+m][j+l][2] = 0;
           }
         }
       }
