@@ -113,10 +113,7 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
              binary[x][y - 1] == 0 || binary[x][y + 1] == 0)) {
           allBlack = 1;
           eroded_image[x][y] = 0;
-        } else if (binary[x][y] == 0 && ()){
-          allBlack = 1;
-          eroded_image[x][y] = 0;
-        }
+        } 
       }
     }
     capture(eroded_image);
@@ -142,15 +139,15 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
       if (red_cross[i][j] == 1) {
-        int cross_size=9;
+        int cross_size = 9;
         for (int k = -cross_size; k <= cross_size; k++) {
-          input[i+k][j][0] = 255;
-          input[i+k][j][1] = 0;
-          input[i+k][j][2] = 0;
+          input[i + k][j][0] = 255;
+          input[i + k][j][1] = 0;
+          input[i + k][j][2] = 0;
           for (int l = -cross_size; l <= cross_size; l++) {
-            input[i][j+l][0] = 255;
-          input[i][j+l][1] = 0;
-          input[i][j+l][2] = 0;
+            input[i][j + l][0] = 255;
+            input[i][j + l][1] = 0;
+            input[i][j + l][2] = 0;
           }
         }
       }
@@ -205,5 +202,6 @@ int main(int argc, char **argv) {
   write_bitmap(output_image, argv[2]);
 
   printf("Done!\n");
+  printf("Found %i\n", Captured_spots);
   return 0;
 }
