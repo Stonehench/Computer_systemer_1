@@ -139,7 +139,7 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
       if (red_cross[i][j] == 1) {
-        int cross_size;
+        int cross_size=9;
         for (int k = -cross_size; k <= cross_size; k++) {
           input[i+k][j][0] = 255;
           input[i+k][j][1] = 0;
