@@ -10,7 +10,7 @@
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
-int thresholdint = 90;
+int thresholdInt = 100;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
@@ -35,7 +35,7 @@ void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
                unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH]) {
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
-      if (greyscale_image[x][y] <= thresholdint) {
+      if (greyscale_image[x][y] <= thresholdInt) {
         binary_image[x][y] = 0;
       } else {
         binary_image[x][y] = 255;
@@ -111,6 +111,9 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
         if (binary[x][y] == 255 &&
             (binary[x - 1][y] == 0 || binary[x + 1][y] == 0 ||
              binary[x][y - 1] == 0 || binary[x][y + 1] == 0)) {
+          allBlack = 1;
+          eroded_image[x][y] = 0;
+        } else if (binary[x][y] == 0 && ()){
           allBlack = 1;
           eroded_image[x][y] = 0;
         }
