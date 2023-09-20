@@ -7,6 +7,7 @@
 #include "cbmp.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
@@ -22,12 +23,15 @@ int Captured_spots = 0;
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]) {
+  unsigned char (*p)[BMP_HEIGTH][BMP_CHANNELS] = input_image;
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
-      greyscale_image[x][y] =
-          (input_image[x][y][0] + input_image[x][y][1] + input_image[x][y][2]) /
-          3;
+      unsigned char r = (*p)[y][0];
+      unsigned char g = (*p)[y][1];
+      unsigned char b = (*p)[y][2];
+      greyscale_image[x][y] = (r + g + b)/3;
     }
+    p++;
   }
 }
 
@@ -79,6 +83,7 @@ void capture_part_2(int x, int y,
 void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
   for (int i = 0; i < BMP_WIDTH - capture_area; i++) {
     for (int j = 0; j < BMP_HEIGTH - capture_area; j++) {
+      /*if(detect_spots[i][j] == 0) continue;*/
       int lock = 1;
       for (int k = 0; k < capture_area; k++) {
         for (int l = 0; l < capture_area; l++) {
@@ -87,12 +92,12 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
               detect_spots[i + k][j + 0] == 255 ||
               detect_spots[i + k][j + capture_area - 1] == 255) {
             lock = 0;
-            continue;
           }
         }
       }
       if (lock) {
         capture_part_2(i, j, detect_spots);
+        j += capture_area-1;
       }
     }
   }
@@ -165,6 +170,9 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
 
 // Main function
 int main(int argc, char **argv) {
+  clock_t start, end;
+    double cpu_time_used;
+    start = clock();
   // Checking that 2 arguments are passed
   if (argc != 3) {
     fprintf(stderr, "Usage: %s <output file path> <output file path>\n",
@@ -201,6 +209,13 @@ int main(int argc, char **argv) {
   // Save image to file
   write_bitmap(output_image, argv[2]);
 
+/* The code that has to be measured. */
+    end = clock();
+    cpu_time_used = end - start;
+      printf("Total time: %f ms\n", cpu_time_used * 1000.0 /
+    CLOCKS_PER_SEC);
+
   printf("Done!\n");
   return 0;
+
 }
