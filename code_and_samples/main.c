@@ -83,10 +83,9 @@ void capture_part_2(int x, int y,
 void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
   for (int i = 0; i < BMP_WIDTH - capture_area; i++) {
     for (int j = 0; j < BMP_HEIGTH - capture_area; j++) {
-      /*if(detect_spots[i][j] == 0) continue;*/
       int lock = 1;
-      for (int k = 0; k < capture_area; k++) {
-        for (int l = 0; l < capture_area; l++) {
+      for (int k = 0; k < capture_area && lock; k++) {
+        for (int l = 0; l < capture_area && lock; l++) {
           if (detect_spots[i + 0][j + l] == 255 ||
               detect_spots[i + capture_area - 1][j + l] == 255 ||
               detect_spots[i + k][j + 0] == 255 ||
