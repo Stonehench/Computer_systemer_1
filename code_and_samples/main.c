@@ -1,5 +1,5 @@
 // To compile (linux/mac): gcc cbmp.c main.c -o main.out -std=c99
-// To run (linux/mac): ./main.out example.bmp example_inv.bmp
+// To run (linux/mac): ./main.out samples/easy/2EASY.bmp output.bmp
 
 // To compile (win): gcc cbmp.c main.c -o main.exe -std=c99
 // To run (win): .\main.exe example.bmp example_inv.bmp
