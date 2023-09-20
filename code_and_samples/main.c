@@ -2,7 +2,7 @@
 // To run (linux/mac): ./main.out samples/easy/2EASY.bmp output.bmp
 
 // To compile (win): gcc cbmp.c main.c -o main.exe -std=c99
-// To run (win): .\main.exe example.bmp example_inv.bmp
+// To run (win): .\main.exe example.bmp output.bmp
 
 #include "cbmp.h"
 #include <stdio.h>
