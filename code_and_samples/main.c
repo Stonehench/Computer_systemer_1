@@ -5,6 +5,7 @@
 // To run (win): .\main.exe example.bmp output.bmp
 
 #include "cbmp.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -18,6 +19,7 @@ unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char red_cross_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char eroded_output_images[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned int cirlce_values[3];
 int Captured_spots = 0;
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
@@ -67,7 +69,7 @@ void capture_part_2(int x, int y,
           for (int p = 0; p < capture_area; p++) {
             eroded_image[x + o][y + p] = 0;
             detect_spots[x + o][y + p] = 0;
-            red_cross_image[x + 5][y + 5] = 1;
+            red_cross_image[x + 6][y + 6] = 1;
           }
         }
         printf("Captured spot %i\n", Captured_spots);
@@ -98,6 +100,55 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
   }
 }
 
+void circleErosion(int xCenter, int yCenter, int radius,
+                   unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
+  int x, y, r2;
+  r2 = radius * radius;
+  for (x = -radius; x <= radius; x++) {
+    y = (int)(sqrt(r2 - x * x) + 0.5);
+    bitmap[xCenter + x][yCenter + y] = 0;
+    bitmap[xCenter + x][yCenter - y] = 0;
+  }
+}
+
+void cellCenter(unsigned char binary[BMP_WIDTH][BMP_HEIGTH], unsigned int values[3]) {
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGTH; j++) {
+      if (binary[i][j] == 255) {
+        int xcenter = i;
+        int ycenter = j;
+        int radius = 0;
+
+        int right = 0;
+        int left = 0;
+        int up = 0;
+        int down = 0;
+        while (binary[xcenter + right][ycenter] == 255) {
+          right++;
+        }
+        while (binary[xcenter - left][ycenter] == 255) {
+          left++;
+        }
+        xcenter = (right + left) / 2;
+        while (binary[xcenter][ycenter + up] == 255) {
+          up++;
+        }
+        while (binary[xcenter][ycenter - down] == 255) {
+          down++;
+        }
+        ycenter = (up + down) / 2;
+
+        while(binary[xcenter][ycenter+radius] == 255){
+          radius++;
+        }
+        values[0] = xcenter;
+        values[1] = ycenter;
+        values[2] = radius;
+      }
+    }
+  }
+}
+
 void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
            unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH]) {
   int allBlack = 1;
@@ -113,7 +164,7 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
              binary[x][y - 1] == 0 || binary[x][y + 1] == 0)) {
           allBlack = 1;
           eroded_image[x][y] = 0;
-        } 
+        }
       }
     }
     capture(eroded_image);
