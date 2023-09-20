@@ -100,55 +100,6 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
   }
 }
 
-void circleErosion(int xCenter, int yCenter, int radius,
-                   unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
-  int x, y, r2;
-  r2 = radius * radius;
-  for (x = -radius; x <= radius; x++) {
-    y = (int)(sqrt(r2 - x * x) + 0.5);
-    bitmap[xCenter + x][yCenter + y] = 0;
-    bitmap[xCenter + x][yCenter - y] = 0;
-  }
-}
-
-void cellCenter(unsigned char binary[BMP_WIDTH][BMP_HEIGTH], unsigned int values[3]) {
-  for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
-      if (binary[i][j] == 255) {
-        int xcenter = i;
-        int ycenter = j;
-        int radius = 0;
-
-        int right = 0;
-        int left = 0;
-        int up = 0;
-        int down = 0;
-        while (binary[xcenter + right][ycenter] == 255) {
-          right++;
-        }
-        while (binary[xcenter - left][ycenter] == 255) {
-          left++;
-        }
-        xcenter = (right + left) / 2;
-        while (binary[xcenter][ycenter + up] == 255) {
-          up++;
-        }
-        while (binary[xcenter][ycenter - down] == 255) {
-          down++;
-        }
-        ycenter = (up + down) / 2;
-
-        while(binary[xcenter][ycenter+radius] == 255){
-          radius++;
-        }
-        values[0] = xcenter;
-        values[1] = ycenter;
-        values[2] = radius;
-      }
-    }
-  }
-}
-
 void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
            unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH]) {
   int allBlack = 1;
@@ -162,6 +113,14 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
         if (binary[x][y] == 255 &&
             (binary[x - 1][y] == 0 || binary[x + 1][y] == 0 ||
              binary[x][y - 1] == 0 || binary[x][y + 1] == 0)) {
+          allBlack = 1;
+          eroded_image[x][y] = 0;
+        } else if (binary[x][y] == 255 &&
+                   binary[x][y] + binary[x + 1][y] + binary[x + 1][y + 1] +
+                           binary[x + 1][y - 1] + binary[x][y - 1] +
+                           binary[x][y + 1] + binary[x - 1][y] +
+                           binary[x - 1][y + 1] + binary[x - 1][y - 1] <=
+                       8 * 255) {
           allBlack = 1;
           eroded_image[x][y] = 0;
         }
@@ -190,45 +149,39 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
       if (red_cross[i][j] == 1) {
-        int cross_size=9;
-        int cross_thickness=3;
+        int cross_size = 9;
+        int cross_thickness = 1;
         for (int k = -cross_size; k <= cross_size; k++) {
           input[i + k][j][0] = 255;
           input[i + k][j][1] = 0;
           input[i + k][j][2] = 0;
           for (int l = -cross_size; l <= cross_size; l++) {
-          input[i][j+l][0] = 255;
-          input[i][j+l][1] = 0;
-          input[i][j+l][2] = 0;
-          for (int m = -cross_thickness; m <= cross_thickness; m++) {
-          input[i+k][j-1][0] = 255;
-          input[i+k][j-1][1] = 0;
-          input[i+k][j-1][2] = 0;
-          input[i+k][j+1][0] = 255;
-          input[i+k][j+1][1] = 0;
-          input[i+k][j+1][2] = 0;
+            input[i][j + l][0] = 255;
+            input[i][j + l][1] = 0;
+            input[i][j + l][2] = 0;
+            for (int m = -cross_thickness; m <= cross_thickness; m++) {
+              input[i + k][j + m][0] = 255;
+              input[i + k][j + m][1] = 0;
+              input[i + k][j + m][2] = 0;
 
-          input[i+1][j+l][0] = 255;
-          input[i+1][j+l][1] = 0;
-          input[i+1][j+l][2] = 0;
-          input[i-1][j+l][0] = 255;
-          input[i-1][j+l][1] = 0;
-          input[i-1][j+l][2] = 0;
+              input[i + m][j + l][0] = 255;
+              input[i + m][j + l][1] = 0;
+              input[i + m][j + l][2] = 0;
+            }
           }
         }
       }
     }
-  }
 
-  for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
-      for (int k = 0; k < BMP_CHANNELS; k++) {
-        output_image[i][j][k] = input[i][j][k];
-       }
-     }
+    for (int i = 0; i < BMP_WIDTH; i++) {
+      for (int j = 0; j < BMP_HEIGTH; j++) {
+        for (int k = 0; k < BMP_CHANNELS; k++) {
+          output_image[i][j][k] = input[i][j][k];
+        }
+      }
     }
   }
- }
+}
 
 // Main function
 int main(int argc, char **argv) {
