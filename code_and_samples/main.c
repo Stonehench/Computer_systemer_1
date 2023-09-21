@@ -11,7 +11,7 @@
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
-int thresholdInt = 100;
+int thresholdInt = 90;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
 unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
@@ -24,13 +24,13 @@ int Captured_spots = 0;
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]) {
-  unsigned char (*p)[BMP_HEIGTH][BMP_CHANNELS] = input_image;
+  unsigned char(*p)[BMP_HEIGTH][BMP_CHANNELS] = input_image;
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
       unsigned char r = (*p)[y][0];
       unsigned char g = (*p)[y][1];
       unsigned char b = (*p)[y][2];
-      greyscale_image[x][y] = (r + g + b)/3;
+      greyscale_image[x][y] = (r + g + b) / 3;
     }
     p++;
   }
@@ -97,7 +97,7 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
       }
       if (lock) {
         capture_part_2(i, j, detect_spots);
-        j += capture_area-1;
+        j += capture_area - 1;
       }
     }
   }
@@ -119,11 +119,11 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
           allBlack = 1;
           eroded_image[x][y] = 0;
         } else if (binary[x][y] == 255 &&
-                   binary[x][y] + binary[x + 1][y] + binary[x + 1][y + 1] +
+                   binary[x + 1][y] + binary[x + 1][y + 1] +
                            binary[x + 1][y - 1] + binary[x][y - 1] +
                            binary[x][y + 1] + binary[x - 1][y] +
-                           binary[x - 1][y + 1] + binary[x - 1][y - 1] <=
-                       8 * 255) {
+                           binary[x - 1][y + 1] + binary[x - 1][y - 1] ==
+                       7 * 255) {
           allBlack = 1;
           eroded_image[x][y] = 0;
         }
@@ -175,12 +175,11 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
         }
       }
     }
-
-    for (int i = 0; i < BMP_WIDTH; i++) {
-      for (int j = 0; j < BMP_HEIGTH; j++) {
-        for (int k = 0; k < BMP_CHANNELS; k++) {
-          output_image[i][j][k] = input[i][j][k];
-        }
+  }
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGTH; j++) {
+      for (int k = 0; k < BMP_CHANNELS; k++) {
+        output_image[i][j][k] = input[i][j][k];
       }
     }
   }
@@ -189,8 +188,8 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
 // Main function
 int main(int argc, char **argv) {
   clock_t start, end;
-    double cpu_time_used;
-    start = clock();
+  double cpu_time_used;
+  start = clock();
   // Checking that 2 arguments are passed
   if (argc != 3) {
     fprintf(stderr, "Usage: %s <output file path> <output file path>\n",
@@ -220,21 +219,15 @@ int main(int argc, char **argv) {
   red_cross(input_image, red_cross_image);
   printf("Printed red cross' \n");
 
-  // // Convert greyscale 2D array to image
-  // array_to_image_converter(binary_image, output_image);
-  // printf("converted into output img\n");
-
   // Save image to file
   write_bitmap(output_image, argv[2]);
 
-/* The code that has to be measured. */
-    end = clock();
-    cpu_time_used = end - start;
-      printf("Total time: %f ms\n", cpu_time_used * 1000.0 /
-    CLOCKS_PER_SEC);
+  /* The code that has to be measured. */
+  end = clock();
+  cpu_time_used = end - start;
+  printf("Total time: %f ms\n", cpu_time_used * 1000.0 / CLOCKS_PER_SEC);
 
   printf("Done!\n");
   printf("Found %i\n", Captured_spots);
   return 0;
-
 }
