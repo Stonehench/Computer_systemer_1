@@ -14,27 +14,23 @@ int capture_area = 14;
 int thresholdInt = 90;
 int circleThreshold = 18;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH];
-unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH];
-unsigned char circle_image[BMP_WIDTH][BMP_HEIGTH];
-unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH];
-unsigned char red_cross_image[BMP_WIDTH][BMP_HEIGTH];
+unsigned char bitmap2D_1 [BMP_WIDTH][BMP_HEIGTH];
+unsigned char bitmap2D_2 [BMP_WIDTH][BMP_HEIGTH];
+
+
 unsigned char eroded_output_images[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned int cirlce_values[3];
+
 int Captured_spots = 0;
 
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
                unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]) {
-  unsigned char(*p)[BMP_HEIGTH][BMP_CHANNELS] = input_image;
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
-      unsigned char r = (*p)[y][0];
-      unsigned char g = (*p)[y][1];
-      unsigned char b = (*p)[y][2];
+      unsigned char r = input_image[x][y][0];
+      unsigned char g = input_image[x][y][1];
+      unsigned char b = input_image[x][y][2];
       greyscale_image[x][y] = (r + g + b) / 3;
     }
-    p++;
   }
 }
 
@@ -43,7 +39,7 @@ void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
       if (greyscale_image[x][y] <= thresholdInt) {
-        binary_image[x][y] = 80;
+        binary_image[x][y] = 0;
       } else {
         binary_image[x][y] = 255;
       }
@@ -72,9 +68,11 @@ void capture_part_2(int x, int y,
         Captured_spots++;
         for (int o = 0; o < capture_area; o++) {
           for (int p = 0; p < capture_area; p++) {
-            eroded_image[x + o][y + p] = 0;
+            bitmap2D_2[x + o][y + p] = 0;
             detect_spots[x + o][y + p] = 0;
-            red_cross_image[x + 6][y + 6] = 1;
+            input_image[x + 6][y + 6][0]= 105;
+            input_image[x + 6][y + 6][1]= 0;
+            input_image[x + 6][y + 6][2]= 0;
           }
         }
         printf("Captured spot %i\n", Captured_spots);
@@ -106,134 +104,138 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
 }
 
 // ChatGPT's help to impliment Bresenham's line algorithm
-void draw_line(int x0, int y0, int x1, int y1,
-               unsigned char circles[BMP_WIDTH][BMP_HEIGTH]) {
-  printf("Draw line from (%i,%i) to (%i,%i) \n", x0, y0, x1, y1);
+// void draw_line(int x0, int y0, int x1, int y1,
+//                unsigned char circles[BMP_WIDTH][BMP_HEIGTH]) {
+//   printf("Draw line from (%i,%i) to (%i,%i) \n", x0, y0, x1, y1);
 
-  int dx = abs(x1 - x0);
-  int dy = abs(y1 - y0);
-  int sx = (x0 < x1) ? 1 : -1;
-  int sy = (y0 < y1) ? 1 : -1;
-  int err = dx - dy;
+//   int dx = abs(x1 - x0);
+//   int dy = abs(y1 - y0);
+//   int sx = (x0 < x1) ? 1 : -1;
+//   int sy = (y0 < y1) ? 1 : -1;
+//   int err = dx - dy;
 
-  while (1) {
-    binary_image[x0][y0] = 0;
-    circles[x0][y0] = 0;
-    if (x0 == x1 && y0 == y1) {
-      break;
-    }
+//   while (1) {
+//     binary_image[x0][y0] = 0;
+//     circles[x0][y0] = 0;
+//     if (x0 == x1 && y0 == y1) {
+//       break;
+//     }
 
-    int e2 = 2 * err;
-    if (e2 > -dy) {
-      err -= dy;
-      x0 += sx;
-    }
-    if (e2 < dx) {
-      err += dx;
-      y0 += sy;
-    }
-  }
-}
+//     int e2 = 2 * err;
+//     if (e2 > -dy) {
+//       err -= dy;
+//       x0 += sx;
+//     }
+//     if (e2 < dx) {
+//       err += dx;
+//       y0 += sy;
+//     }
+//   }
+// }
 
-void circle_detecter(unsigned char circles[BMP_WIDTH][BMP_HEIGTH]) {
-  int circleDetected1 = 0;
-  int circleStartX = 0;
-  int circleStartY = 0;
-  int cirlceEndX = 0;
-  int cirlceEndY = 0;
-  int white_counter1 = 0;
-  int white_counter2 = 0;
-  int testStartX = 0;
-  int testStartY = 0;
-  int oldX = 0;
-  int oldY = 0;
-  float percentage = 1.6;
-  for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
-      if (circles[i][j] == 255) {
-        if (white_counter1 == 0) {
-          if (testStartX == 0 && testStartY == 0) {
-            testStartX = i;
-            testStartY = j;
-          }
-          while (circles[testStartX][testStartY + white_counter1] == 255) {
-            white_counter1++;
-          }
-          if (white_counter1 < 4) {
-            white_counter1 = 0;
-          }
-        } else {
-          while (circles[testStartX][testStartY + white_counter2] == 255) {
-            white_counter2++;
-          }
-        }
+// void circle_detecter(unsigned char circles[BMP_WIDTH][BMP_HEIGTH]) {
+//   int circleDetected1 = 0;
+//   int circleStartX = 0;
+//   int circleStartY = 0;
+//   int cirlceEndX = 0;
+//   int cirlceEndY = 0;
+//   int white_counter1 = 0;
+//   int white_counter2 = 0;
+//   int testStartX = 0;
+//   int testStartY = 0;
+//   int currentX = 0;
+//   int currentY = 0;
+//   int oldX = 0;
+//   int oldY = 0;
+//   int percentage = 2;
+//   for (int i = 0; i < BMP_WIDTH; i++) {
+//     for (int j = 0; j < BMP_HEIGTH; j++) {
+//       if (circles[i][j] == 255) {
+//         testStartX = i;
+//         testStartY = j;
+//         currentX = testStartX;
+//         currentY = testStartY;
+//         while (circles[currentX][currentY] == 255) {
+//           if (white_counter1 == 0) {
+//             while (circles[currentX][currentY + white_counter1] == 255) {
+//               circles[currentX][currentY + white_counter1] = 0;
+//               white_counter1++;
+//             }
+//             if (white_counter1 < 6) {
+//               white_counter1 = 0;
+//             }
+//           } else {
+//             while (circles[currentX][currentY + white_counter2] == 255) {
+//               circles[currentX][currentY + white_counter2] = 0;
+//               white_counter2++;
+//             }
+//           }
 
-        // test med en forskels beregning i stedet for en procent beregning
-        if (white_counter2 >= white_counter1 * percentage &&
-            white_counter1 != 0 && circleDetected1 == 0) {
-          circleDetected1 = 1;
-          circleStartX = oldX;
-          circleStartY = oldY;
-        }
-        if (circleDetected1 && white_counter2 <= white_counter1 * percentage) {
-          if ((circleStartY - testStartY) <
-              (circleStartY - (testStartY + white_counter2))) {
-            cirlceEndX = testStartX;
-            cirlceEndY = testStartY;
-            draw_line(circleStartX, circleStartY, cirlceEndX, cirlceEndY,
-                      circles);
-            circleDetected1 = 0;
-          } else {
-            cirlceEndX = testStartX;
-            cirlceEndY = testStartY + white_counter2;
-            draw_line(circleStartX, circleStartY, cirlceEndX, cirlceEndY,
-                      circles);
-            circleDetected1 = 0;
-          }
-        }
-        oldX = testStartX;
-        oldY = testStartY;
-        if (white_counter2 != 0) {
-          white_counter1 = white_counter2;
-        }
-        white_counter2 = 0;
-        testStartX++;
-        if (circles[testStartX][testStartY] == 255) {
-          while (circles[testStartX][testStartY] == 255) {
-            testStartY--;
-          }
-        } else {
-          for (int k = 0; k < 5; k++) {
-            testStartY++;
-            if (circles[testStartX][testStartY] == 255) {
-              testStartY--;
-              break;
-            }
-          }
-        }
-      } else if (white_counter1) {
-        for (int k = testStartX; k < cirlceEndX; k++) {
-          for (int l = testStartY; l < cirlceEndY; l++) {
-            if (circles[k][l] == 255){
-              circles[k][l] = 0;
-            }
-          }
-        }
-        circleDetected1 = 0;
-        circleStartX = 0;
-        circleStartY = 0;
-        cirlceEndX = 0;
-        cirlceEndY = 0;
-        white_counter1 = 0;
-        white_counter2 = 0;
-        oldX = 0;
-        oldY = 0;
-        testStartX = 0;
-        testStartY = 0;
-      }
-    }
-  }
-}
+//           // test med en forskels beregning i stedet for en procent beregning
+//           if (white_counter2 >= white_counter1 * percentage &&
+//               white_counter1 != 0 && circleDetected1 == 0) {
+//             circleDetected1 = 1;
+//             circleStartX = oldX;
+//             circleStartY = oldY;
+//           }
+
+//           if (circleDetected1 &&
+//               white_counter2 <= white_counter1 * percentage) {
+//             if ((circleStartY - currentY) <
+//                 (circleStartY - (currentY + white_counter2))) {
+//               cirlceEndX = currentX;
+//               cirlceEndY = currentY;
+//               draw_line(circleStartX, circleStartY, cirlceEndX, cirlceEndY,
+//                         circles);
+//               circleDetected1 = 0;
+//             } else {
+//               cirlceEndX = currentX;
+//               cirlceEndY = currentY + white_counter2;
+//               draw_line(circleStartX, circleStartY, cirlceEndX, cirlceEndY,
+//                         circles);
+//               circleDetected1 = 0;
+//             }
+//           }
+
+//           oldX = currentX;
+//           oldY = currentY;
+//           if (white_counter2 != 0) {
+//             white_counter1 = white_counter2;
+//           }
+//           white_counter2 = 0;
+//           currentX++;
+//           if (circles[currentX][currentY] == 255) {
+//             while (circles[currentX][currentY] == 255) {
+//               currentY--;
+//             }
+//             currentY++;
+//           } else {
+//             for (int k = 0; k < 5; k++) {
+//               currentY++;
+//               if (circles[currentX][currentY] == 255) {
+//                 break;
+//               }
+//             }
+//           }
+//         }
+//       } else {
+//         circleDetected1 = 0;
+//         circleStartX = 0;
+//         circleStartY = 0;
+//         cirlceEndX = 0;
+//         cirlceEndY = 0;
+//         white_counter1 = 0;
+//         white_counter2 = 0;
+//         oldX = 0;
+//         oldY = 0;
+//         testStartX = 0;
+//         testStartY = 0;
+//         currentX = 0;
+//         currentY = 0;
+//       }
+//     }
+//   }
+// }
 
 void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
            unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH]) {
@@ -279,11 +281,10 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
   }
 }
 
-void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
-               unsigned char red_cross[BMP_WIDTH][BMP_HEIGTH]) {
+void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]) {
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
-      if (red_cross[i][j] == 1) {
+      if (input[i][j][0] == 105 && input[i][j][1] == 0 && input[i][j][2] == 0) {
         int cross_size = 9;
         int cross_thickness = 1;
         for (int k = -cross_size; k <= cross_size; k++) {
@@ -308,13 +309,6 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
       }
     }
   }
-  for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
-      for (int k = 0; k < BMP_CHANNELS; k++) {
-        output_image[i][j][k] = input[i][j][k];
-      }
-    }
-  }
 }
 
 // Main function
@@ -336,30 +330,30 @@ int main(int argc, char **argv) {
   printf("Read bitmap from file\n");
 
   // Run greyscale from image
-  greyscale(input_image, greyscale_image);
+  greyscale(input_image, bitmap2D_1);
   printf("Converted into grayscale\n");
 
   // Converts greyscale image to binary image
-  threshold(greyscale_image, binary_image);
+  threshold(bitmap2D_1, bitmap2D_2);
   printf("Converted into binary \n");
 
-  for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
-      circle_image[i][j] = binary_image[i][j];
-    }
-  }
-  circle_detecter(circle_image);
+  // for (int i = 0; i < BMP_WIDTH; i++) {
+  //   for (int j = 0; j < BMP_HEIGTH; j++) {
+  //     circle_image[i][j] = binary_image[i][j];
+  //   }
+  // }
+  // circle_detecter(circle_image);
 
   // erodes image
-  erode(binary_image, eroded_image);
+  erode(bitmap2D_2, bitmap2D_1);
   printf("Eroded image \n");
 
   // Prints red cross on original image
-  red_cross(input_image, red_cross_image);
+  red_cross(input_image);
   printf("Printed red cross' \n");
 
   // Save image to file
-  write_bitmap(output_image, argv[2]);
+  write_bitmap(input_image, argv[2]);
 
   /* The code that has to be measured. */
   end = clock();
