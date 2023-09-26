@@ -97,7 +97,6 @@ void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
       unsigned char r = input_image[x][y][0];
       unsigned char g = input_image[x][y][1];
       unsigned char b = input_image[x][y][2];
-      // her er problemet
       greyscale_image[x][y] = (r + g + b) / 3;
       Otsu_image[x][y] = (unsigned char)(r + g + b) / 3.0;
     }
