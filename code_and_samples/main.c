@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
+
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
@@ -46,10 +48,10 @@ double calculateMean(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH],
   double mean = 0.0;
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGTH; j++) {
-      mean += (double)bitmap[i][j] / totalPixelCount;
+      mean += bitmap[i][j];
     }
   }
-  return mean;
+  return mean / totalPixelCount;
 }
 
 int calculateOtsuThreshold(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
@@ -132,25 +134,28 @@ void array_to_image_converter(
   }
 }
 
-void capture_part_2(int x, int y,
-                    unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
-  for (int m = 0; m < capture_area; m++) {
-    for (int n = 0; n < capture_area; n++) {
-      if (detect_spots[x + m][y + n] == 255) {
-        Captured_spots++;
-        for (int o = 0; o < capture_area; o++) {
-          for (int p = 0; p < capture_area; p++) {
-            bitmap2D_2[x + o][y + p] = 0;
-            detect_spots[x + o][y + p] = 0;
-            input_image[x + 6][y + 6][0] = 105;
-            input_image[x + 6][y + 6][1] = 0;
-            input_image[x + 6][y + 6][2] = 0;
-          }
+void capture_part_2(int x, int y, unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
+    for (int m = 0; m < capture_area; m++) {
+        for (int n = 0; n < capture_area; n++) {
+            if (detect_spots[x + m][y + n] == 255) {
+                Captured_spots++;
+
+                for (int o = 0; o < capture_area; o++) {
+                    for (int p = 0; p < capture_area; p++) {
+                        bitmap2D_2[x + o][y + p] = 0;
+                        detect_spots[x + o][y + p] = 0;
+                    }
+                }
+                
+                input_image[x + 6][y + 6][0] = 105;
+                input_image[x + 6][y + 6][1] = 0;
+                input_image[x + 6][y + 6][2] = 0;
+
+                printf("Captured spot %i\n", Captured_spots);
+                break;
+            }
         }
-        printf("Captured spot %i\n", Captured_spots);
-      }
     }
-  }
 }
 
 void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
