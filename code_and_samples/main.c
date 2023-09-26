@@ -5,6 +5,7 @@
 // To run (win): .\main.exe example.bmp output.bmp
 
 #include "cbmp.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,26 +13,26 @@
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
 int circleThreshold = 18;
-unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char bitmap2D_1[BMP_WIDTH][BMP_HEIGTH];
-unsigned char bitmap2D_2[BMP_WIDTH][BMP_HEIGTH];
-unsigned char bitmap2D_3[BMP_WIDTH][BMP_HEIGTH];
+unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char bitmap2D_1[BMP_WIDTH][BMP_HEIGHT];
+unsigned char bitmap2D_2[BMP_WIDTH][BMP_HEIGHT];
+unsigned char bitmap2D_3[BMP_WIDTH][BMP_HEIGHT];
 
-unsigned char eroded_output_images[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+unsigned char eroded_output_images[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
 
 int Captured_spots = 0;
 
-void calculateHistogram(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH],
+void calculateHistogram(unsigned char bitmap[BMP_WIDTH][BMP_HEIGHT],
                         int histogram[256]) {
   for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
+    for (int j = 0; j < BMP_HEIGHT; j++) {
       histogram[bitmap[i][j]]++;
     }
   }
 }
 
-int getTotalPixelCount(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
-  return BMP_WIDTH * BMP_HEIGTH;
+int getTotalPixelCount(unsigned char bitmap[BMP_WIDTH][BMP_HEIGHT]) {
+  return BMP_WIDTH * BMP_HEIGHT;
 }
 
 void calculateCDF(int histogram[256], double cdf[256], int totalPixelCount) {
@@ -41,18 +42,18 @@ void calculateCDF(int histogram[256], double cdf[256], int totalPixelCount) {
   }
 }
 
-double calculateMean(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH],
+double calculateMean(unsigned char bitmap[BMP_WIDTH][BMP_HEIGHT],
                      int totalPixelCount) {
   double mean = 0.0;
   for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
+    for (int j = 0; j < BMP_HEIGHT; j++) {
       mean += (double)bitmap[i][j] / totalPixelCount;
     }
   }
   return mean;
 }
 
-int calculateOtsuThreshold(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
+int calculateOtsuThreshold(unsigned char bitmap[BMP_WIDTH][BMP_HEIGHT]) {
   int histogram[256] = {0};
   calculateHistogram(bitmap, histogram);
 
@@ -89,11 +90,11 @@ int calculateOtsuThreshold(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
   return threshold;
 }
 
-void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
-               unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
-               unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGTH]) {
+void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS],
+               unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGHT],
+               unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGHT]) {
   for (int x = 0; x < BMP_WIDTH; x++) {
-    for (int y = 0; y < BMP_HEIGTH; y++) {
+    for (int y = 0; y < BMP_HEIGHT; y++) {
       unsigned char r = input_image[x][y][0];
       unsigned char g = input_image[x][y][1];
       unsigned char b = input_image[x][y][2];
@@ -103,13 +104,13 @@ void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
   }
 }
 
-void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
-               unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH],
-               unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGTH]) {
+void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGHT],
+               unsigned char binary_image[BMP_WIDTH][BMP_HEIGHT],
+               unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGHT]) {
   int thresholdInt = calculateOtsuThreshold(Otsu_image);
   printf("%i\n", thresholdInt);
   for (int x = 0; x < BMP_WIDTH; x++) {
-    for (int y = 0; y < BMP_HEIGTH; y++) {
+    for (int y = 0; y < BMP_HEIGHT; y++) {
       if (greyscale_image[x][y] < thresholdInt) {
         binary_image[x][y] = 0;
       } else {
@@ -117,13 +118,18 @@ void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
       }
     }
   }
+  for (int x = 0; x < BMP_WIDTH; x++) {
+    for (int y = 0; y < BMP_HEIGHT; y++) {
+      greyscale_image[x][y] = binary_image[x][y];
+    }
+  }
 }
 
 void array_to_image_converter(
-    unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
-    unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]) {
+    unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGHT],
+    unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS]) {
   for (int x = 0; x < BMP_WIDTH; x++) {
-    for (int y = 0; y < BMP_HEIGTH; y++) {
+    for (int y = 0; y < BMP_HEIGHT; y++) {
       unsigned char rgb_color = greyscale_image[x][y];
       output_image[x][y][0] = rgb_color;
       output_image[x][y][1] = rgb_color;
@@ -133,7 +139,7 @@ void array_to_image_converter(
 }
 
 void capture_part_2(int x, int y,
-                    unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
+                    unsigned char detect_spots[BMP_WIDTH][BMP_HEIGHT]) {
   for (int m = 0; m < capture_area; m++) {
     for (int n = 0; n < capture_area; n++) {
       if (detect_spots[x + m][y + n] == 255) {
@@ -153,9 +159,9 @@ void capture_part_2(int x, int y,
   }
 }
 
-void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
+void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGHT]) {
   for (int i = 0; i < BMP_WIDTH - capture_area; i++) {
-    for (int j = 0; j < BMP_HEIGTH - capture_area; j++) {
+    for (int j = 0; j < BMP_HEIGHT - capture_area; j++) {
       int lock = 1;
       for (int k = 0; k < capture_area && lock; k++) {
         for (int l = 0; l < capture_area && lock; l++) {
@@ -175,149 +181,119 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGTH]) {
   }
 }
 
-// ChatGPT's help to impliment Bresenham's line algorithm
-// void draw_line(int x0, int y0, int x1, int y1,
-//                unsigned char circles[BMP_WIDTH][BMP_HEIGTH]) {
-//   printf("Draw line from (%i,%i) to (%i,%i) \n", x0, y0, x1, y1);
+// Function to calculate the squared Euclidean distance
+double squaredEuclideanDistance(int x1, int y1, int x2, int y2) {
+  int dx = x1 - x2;
+  int dy = y1 - y2;
+  return dx * dx + dy * dy;
+}
 
-//   int dx = abs(x1 - x0);
-//   int dy = abs(y1 - y0);
-//   int sx = (x0 < x1) ? 1 : -1;
-//   int sy = (y0 < y1) ? 1 : -1;
-//   int err = dx - dy;
+// Function to compute the distance transform of a binary image
+void watershed_segmentation(unsigned char binaryImage[BMP_WIDTH][BMP_HEIGHT]) {
+  // Initialize the distance map to a maximum value
+  int maxDistance = BMP_WIDTH * BMP_HEIGHT;
+  // Iterate through each pixel in the distance map
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGHT; j++) {
+      if (binaryImage[i][j] == 255) { // If it's a foreground pixel
+        unsigned char min_neighbor_distance = maxDistance;
 
-//   while (1) {
-//     binary_image[x0][y0] = 0;
-//     circles[x0][y0] = 0;
-//     if (x0 == x1 && y0 == y1) {
-//       break;
-//     }
+        // Check neighbors in a 3x3 window
+        for (int x = -1; x <= 1; x++) {
+          for (int y = -1; y <= 1; y++) {
+            int nx = i + x;
+            int ny = j + y;
 
-//     int e2 = 2 * err;
-//     if (e2 > -dy) {
-//       err -= dy;
-//       x0 += sx;
-//     }
-//     if (e2 < dx) {
-//       err += dx;
-//       y0 += sy;
-//     }
-//   }
+            if (nx >= 0 && nx < BMP_WIDTH && ny >= 0 && ny < BMP_HEIGHT) {
+              if (binaryImage[nx][ny] == 0) { // If it's a background pixel
+                unsigned int dist = squaredEuclideanDistance(i, j, nx, ny);
+                if (dist < min_neighbor_distance) {
+                  min_neighbor_distance = (unsigned char)dist;
+                }
+              }
+            }
+          }
+        }
+
+        if (min_neighbor_distance == 1) {
+          // This is a ridge pixel, label it with a unique label
+          bitmap2D_1[i][j] = 0;
+        } 
+      }
+    }
+  }
+}
+
+// Structure to represent a pixel with its properties
+typedef struct {
+  int x, y;  // Pixel coordinates
+  int value; // Distance transform value
+  int label; // Segment label
+} Pixel;
+
+// int comparePixels(const void *a, const void *b) {
+//   const Pixel *pixelA = (const Pixel *)a;
+//   const Pixel *pixelB = (const Pixel *)b;
+
+//   return pixelA->value - pixelB->value;
 // }
 
-// void circle_detecter(unsigned char circles[BMP_WIDTH][BMP_HEIGTH]) {
-//   int circleDetected1 = 0;
-//   int circleStartX = 0;
-//   int circleStartY = 0;
-//   int cirlceEndX = 0;
-//   int cirlceEndY = 0;
-//   int white_counter1 = 0;
-//   int white_counter2 = 0;
-//   int testStartX = 0;
-//   int testStartY = 0;
-//   int currentX = 0;
-//   int currentY = 0;
-//   int oldX = 0;
-//   int oldY = 0;
-//   int percentage = 2;
-//   for (int i = 0; i < BMP_WIDTH; i++) {
-//     for (int j = 0; j < BMP_HEIGTH; j++) {
-//       if (circles[i][j] == 255) {
-//         testStartX = i;
-//         testStartY = j;
-//         currentX = testStartX;
-//         currentY = testStartY;
-//         while (circles[currentX][currentY] == 255) {
-//           if (white_counter1 == 0) {
-//             while (circles[currentX][currentY + white_counter1] == 255) {
-//               circles[currentX][currentY + white_counter1] = 0;
-//               white_counter1++;
-//             }
-//             if (white_counter1 < 6) {
-//               white_counter1 = 0;
-//             }
-//           } else {
-//             while (circles[currentX][currentY + white_counter2] == 255) {
-//               circles[currentX][currentY + white_counter2] = 0;
-//               white_counter2++;
-//             }
-//           }
+// // Function to perform watershed segmentation
+// void watershedSegmentation(unsigned char distanceMap[BMP_WIDTH][BMP_HEIGHT]) {
+//   // Create an array to store pixels and their properties
+//   Pixel *pixels = (Pixel *)malloc(BMP_WIDTH * BMP_HEIGHT * sizeof(Pixel));
 
-//           // test med en forskels beregning i stedet for en procent beregning
-//           if (white_counter2 >= white_counter1 * percentage &&
-//               white_counter1 != 0 && circleDetected1 == 0) {
-//             circleDetected1 = 1;
-//             circleStartX = oldX;
-//             circleStartY = oldY;
-//           }
+//   // Initialize the pixel array with distance map values
+//   int numPixels = 0;
+//   for (int x = 0; x < BMP_WIDTH; x++) {
+//     for (int y = 0; y < BMP_HEIGHT; y++) {
+//       pixels[numPixels].x = x;
+//       pixels[numPixels].y = y;
+//       pixels[numPixels].value = distanceMap[x][y];
+//       pixels[numPixels].label = -1; // Initialize labels to -1
+//       numPixels++;
+//     }
+//   }
 
-//           if (circleDetected1 &&
-//               white_counter2 <= white_counter1 * percentage) {
-//             if ((circleStartY - currentY) <
-//                 (circleStartY - (currentY + white_counter2))) {
-//               cirlceEndX = currentX;
-//               cirlceEndY = currentY;
-//               draw_line(circleStartX, circleStartY, cirlceEndX, cirlceEndY,
-//                         circles);
-//               circleDetected1 = 0;
-//             } else {
-//               cirlceEndX = currentX;
-//               cirlceEndY = currentY + white_counter2;
-//               draw_line(circleStartX, circleStartY, cirlceEndX, cirlceEndY,
-//                         circles);
-//               circleDetected1 = 0;
-//             }
-//           }
+//   // Sort the pixels based on their distance values (ascending order)
+//   qsort(pixels, numPixels, sizeof(Pixel), comparePixels);
 
-//           oldX = currentX;
-//           oldY = currentY;
-//           if (white_counter2 != 0) {
-//             white_counter1 = white_counter2;
-//           }
-//           white_counter2 = 0;
-//           currentX++;
-//           if (circles[currentX][currentY] == 255) {
-//             while (circles[currentX][currentY] == 255) {
-//               currentY--;
-//             }
-//             currentY++;
-//           } else {
-//             for (int k = 0; k < 5; k++) {
-//               currentY++;
-//               if (circles[currentX][currentY] == 255) {
-//                 break;
-//               }
-//             }
-//           }
+//   // Watershed segmentation
+//   int currentLabel = 0;
+//   for (int i = 0; i < numPixels; i++) {
+//     Pixel *pixel = &pixels[i];
+
+//     // If the pixel is not assigned to a segment
+//     if (pixel->label == -1) {
+//       currentLabel++; // Start a new segment
+//       pixel->label = currentLabel;
+
+//       // Perform region growing
+//       for (int j = i + 1; j < numPixels; j++) {
+//         Pixel *neighbor = &pixels[j];
+
+//         // Check if the neighbor is unassigned and within a certain threshold
+//         // distance
+//         if (neighbor->label == -1 && abs(pixel->value - neighbor->value) <= 1) {
+//           neighbor->label = currentLabel;
 //         }
-//       } else {
-//         circleDetected1 = 0;
-//         circleStartX = 0;
-//         circleStartY = 0;
-//         cirlceEndX = 0;
-//         cirlceEndY = 0;
-//         white_counter1 = 0;
-//         white_counter2 = 0;
-//         oldX = 0;
-//         oldY = 0;
-//         testStartX = 0;
-//         testStartY = 0;
-//         currentX = 0;
-//         currentY = 0;
 //       }
 //     }
 //   }
+
+//   // Free memory
+//   free(pixels);
 // }
 
-void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
-           unsigned char eroded_image[BMP_WIDTH][BMP_HEIGTH]) {
+void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGHT],
+           unsigned char eroded_image[BMP_WIDTH][BMP_HEIGHT]) {
   int allBlack = 1;
   int counter = 0;
   while (allBlack) {
     counter++;
     allBlack = 0;
     for (int x = 0; x < BMP_WIDTH; x++) {
-      for (int y = 0; y < BMP_HEIGTH; y++) {
+      for (int y = 0; y < BMP_HEIGHT; y++) {
         eroded_image[x][y] = binary[x][y];
         if (binary[x][y] == 255 &&
             (binary[x - 1][y] == 0 || binary[x + 1][y] == 0 ||
@@ -337,11 +313,11 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
     }
     capture(eroded_image);
     for (int i = 0; i < BMP_WIDTH; i++) {
-      for (int j = 0; j < BMP_HEIGTH; j++) {
+      for (int j = 0; j < BMP_HEIGHT; j++) {
         eroded_image[0][j] = 0;
         eroded_image[BMP_WIDTH - 1][j] = 0;
         eroded_image[i][0] = 0;
-        eroded_image[i][BMP_HEIGTH - 1] = 0;
+        eroded_image[i][BMP_HEIGHT - 1] = 0;
         binary[i][j] = eroded_image[i][j];
       }
     }
@@ -353,9 +329,9 @@ void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGTH],
   }
 }
 
-void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]) {
+void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS]) {
   for (int i = 0; i < BMP_WIDTH; i++) {
-    for (int j = 0; j < BMP_HEIGTH; j++) {
+    for (int j = 0; j < BMP_HEIGHT; j++) {
       if (input[i][j][0] == 105 && input[i][j][1] == 0 && input[i][j][2] == 0) {
         int cross_size = 9;
         int cross_thickness = 1;
@@ -409,15 +385,16 @@ int main(int argc, char **argv) {
   threshold(bitmap2D_1, bitmap2D_2, bitmap2D_3);
   printf("Converted into binary \n");
 
-  // for (int i = 0; i < BMP_WIDTH; i++) {
-  //   for (int j = 0; j < BMP_HEIGTH; j++) {
-  //     circle_image[i][j] = binary_image[i][j];
-  //   }
-  // }
-  // circle_detecter(circle_image);
+  // Compute the distance transform
+  watershed_segmentation(bitmap2D_2);
+  printf("Watershed segmentation on binary \n");
+
+  // // Perform watershed segmentation
+  // watershedSegmentation(bitmap2D_3);
+  // printf("wtaershed segmentation on binary \n");
 
   // erodes image
-  erode(bitmap2D_2, bitmap2D_3);
+  erode(bitmap2D_1, bitmap2D_3);
   printf("Eroded image \n");
 
   // Prints red cross on original image
