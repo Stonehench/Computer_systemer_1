@@ -11,34 +11,107 @@
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
-int thresholdInt = 90;
 int circleThreshold = 18;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char bitmap2D_1 [BMP_WIDTH][BMP_HEIGTH];
-unsigned char bitmap2D_2 [BMP_WIDTH][BMP_HEIGTH];
-
+unsigned char bitmap2D_1[BMP_WIDTH][BMP_HEIGTH];
+unsigned char bitmap2D_2[BMP_WIDTH][BMP_HEIGTH];
+unsigned char bitmap2D_3[BMP_WIDTH][BMP_HEIGTH];
 
 unsigned char eroded_output_images[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 
 int Captured_spots = 0;
 
+void calculateHistogram(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH],
+                        int histogram[256]) {
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGTH; j++) {
+      histogram[bitmap[i][j]]++;
+    }
+  }
+}
+
+int getTotalPixelCount(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
+  return BMP_WIDTH * BMP_HEIGTH;
+}
+
+void calculateCDF(int histogram[256], double cdf[256], int totalPixelCount) {
+  cdf[0] = (double)histogram[0] / totalPixelCount;
+  for (int i = 1; i < 256; i++) {
+    cdf[i] = cdf[i - 1] + (double)histogram[i] / totalPixelCount;
+  }
+}
+
+double calculateMean(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH],
+                     int totalPixelCount) {
+  double mean = 0.0;
+  for (int i = 0; i < BMP_WIDTH; i++) {
+    for (int j = 0; j < BMP_HEIGTH; j++) {
+      mean += (double)bitmap[i][j] / totalPixelCount;
+    }
+  }
+  return mean;
+}
+
+int calculateOtsuThreshold(unsigned char bitmap[BMP_WIDTH][BMP_HEIGTH]) {
+  int histogram[256] = {0};
+  calculateHistogram(bitmap, histogram);
+
+  int totalPixelCount = getTotalPixelCount(bitmap);
+
+  double cdf[256];
+  calculateCDF(histogram, cdf, totalPixelCount);
+
+  double mean = calculateMean(bitmap, totalPixelCount);
+
+  double maxVariance = 0.0;
+  int threshold = 0;
+
+  for (int i = 0; i < 256; i++) {
+    double p0 = cdf[i];
+    double p1 = 1.0 - cdf[i];
+    double mu0 = 0.0;
+    double mu1 = 0.0;
+
+    if (p0 > 0.0) {
+      mu0 = (mean - cdf[i - 1]) / p0;
+    }
+    if (p1 > 0.0) {
+      mu1 = (mean - cdf[i - 1]) / p1;
+    }
+
+    double variance = p0 * p1 * (mu0 - mu1) * (mu0 - mu1);
+    if (variance > maxVariance) {
+      maxVariance = variance;
+      threshold = i;
+    }
+  }
+
+  return threshold;
+}
+
 void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
-               unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH]) {
+               unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
+               unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGTH]) {
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
       unsigned char r = input_image[x][y][0];
       unsigned char g = input_image[x][y][1];
       unsigned char b = input_image[x][y][2];
+      // her er problemet
       greyscale_image[x][y] = (r + g + b) / 3;
+      Otsu_image[x][y] = (unsigned char)(r + g + b) / 3.0;
     }
   }
 }
 
 void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGTH],
-               unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH]) {
+               unsigned char binary_image[BMP_WIDTH][BMP_HEIGTH],
+               unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGTH]) {
+  int thresholdInt = calculateOtsuThreshold(Otsu_image);
+  printf("%i\n", thresholdInt);
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGTH; y++) {
-      if (greyscale_image[x][y] <= thresholdInt) {
+      if (greyscale_image[x][y] < thresholdInt) {
         binary_image[x][y] = 0;
       } else {
         binary_image[x][y] = 255;
@@ -70,9 +143,9 @@ void capture_part_2(int x, int y,
           for (int p = 0; p < capture_area; p++) {
             bitmap2D_2[x + o][y + p] = 0;
             detect_spots[x + o][y + p] = 0;
-            input_image[x + 6][y + 6][0]= 105;
-            input_image[x + 6][y + 6][1]= 0;
-            input_image[x + 6][y + 6][2]= 0;
+            input_image[x + 6][y + 6][0] = 105;
+            input_image[x + 6][y + 6][1] = 0;
+            input_image[x + 6][y + 6][2] = 0;
           }
         }
         printf("Captured spot %i\n", Captured_spots);
@@ -330,11 +403,11 @@ int main(int argc, char **argv) {
   printf("Read bitmap from file\n");
 
   // Run greyscale from image
-  greyscale(input_image, bitmap2D_1);
+  greyscale(input_image, bitmap2D_1, bitmap2D_3);
   printf("Converted into grayscale\n");
 
   // Converts greyscale image to binary image
-  threshold(bitmap2D_1, bitmap2D_2);
+  threshold(bitmap2D_1, bitmap2D_2, bitmap2D_3);
   printf("Converted into binary \n");
 
   // for (int i = 0; i < BMP_WIDTH; i++) {
@@ -345,7 +418,7 @@ int main(int argc, char **argv) {
   // circle_detecter(circle_image);
 
   // erodes image
-  erode(bitmap2D_2, bitmap2D_1);
+  erode(bitmap2D_2, bitmap2D_3);
   printf("Eroded image \n");
 
   // Prints red cross on original image
