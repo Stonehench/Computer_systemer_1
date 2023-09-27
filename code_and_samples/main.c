@@ -327,10 +327,6 @@ int main(int argc, char **argv) {
   watershed_segmentation(bitmap2D_2);
   printf("Watershed segmentation on binary \n");
 
-  // // Perform watershed segmentation
-  // watershedSegmentation(bitmap2D_3);
-  // printf("wtaershed segmentation on binary \n");
-
   // erodes image
   erode(bitmap2D_1, bitmap2D_3);
   printf("Eroded image \n");
