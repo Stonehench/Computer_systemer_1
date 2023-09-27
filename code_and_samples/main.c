@@ -10,7 +10,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-// Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
 int circleThreshold = 18;
 unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
@@ -153,7 +152,6 @@ void capture_part_2(int x, int y,
             input_image[x + 6][y + 6][2] = 0;
           }
         }
-        printf("Captured spot %i\n", Captured_spots);
       }
     }
   }
@@ -216,74 +214,13 @@ void watershed_segmentation(unsigned char binaryImage[BMP_WIDTH][BMP_HEIGHT]) {
         }
 
         if (min_neighbor_distance == 1) {
-          // This is a ridge pixel, label it with a unique label
+          // This is a ridge pixel
           bitmap2D_1[i][j] = 0;
         } 
       }
     }
   }
 }
-
-// Structure to represent a pixel with its properties
-typedef struct {
-  int x, y;  // Pixel coordinates
-  int value; // Distance transform value
-  int label; // Segment label
-} Pixel;
-
-// int comparePixels(const void *a, const void *b) {
-//   const Pixel *pixelA = (const Pixel *)a;
-//   const Pixel *pixelB = (const Pixel *)b;
-
-//   return pixelA->value - pixelB->value;
-// }
-
-// // Function to perform watershed segmentation
-// void watershedSegmentation(unsigned char distanceMap[BMP_WIDTH][BMP_HEIGHT]) {
-//   // Create an array to store pixels and their properties
-//   Pixel *pixels = (Pixel *)malloc(BMP_WIDTH * BMP_HEIGHT * sizeof(Pixel));
-
-//   // Initialize the pixel array with distance map values
-//   int numPixels = 0;
-//   for (int x = 0; x < BMP_WIDTH; x++) {
-//     for (int y = 0; y < BMP_HEIGHT; y++) {
-//       pixels[numPixels].x = x;
-//       pixels[numPixels].y = y;
-//       pixels[numPixels].value = distanceMap[x][y];
-//       pixels[numPixels].label = -1; // Initialize labels to -1
-//       numPixels++;
-//     }
-//   }
-
-//   // Sort the pixels based on their distance values (ascending order)
-//   qsort(pixels, numPixels, sizeof(Pixel), comparePixels);
-
-//   // Watershed segmentation
-//   int currentLabel = 0;
-//   for (int i = 0; i < numPixels; i++) {
-//     Pixel *pixel = &pixels[i];
-
-//     // If the pixel is not assigned to a segment
-//     if (pixel->label == -1) {
-//       currentLabel++; // Start a new segment
-//       pixel->label = currentLabel;
-
-//       // Perform region growing
-//       for (int j = i + 1; j < numPixels; j++) {
-//         Pixel *neighbor = &pixels[j];
-
-//         // Check if the neighbor is unassigned and within a certain threshold
-//         // distance
-//         if (neighbor->label == -1 && abs(pixel->value - neighbor->value) <= 1) {
-//           neighbor->label = currentLabel;
-//         }
-//       }
-//     }
-//   }
-
-//   // Free memory
-//   free(pixels);
-// }
 
 void erode(unsigned char binary[BMP_WIDTH][BMP_HEIGHT],
            unsigned char eroded_image[BMP_WIDTH][BMP_HEIGHT]) {
@@ -333,6 +270,7 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS]) {
   for (int i = 0; i < BMP_WIDTH; i++) {
     for (int j = 0; j < BMP_HEIGHT; j++) {
       if (input[i][j][0] == 105 && input[i][j][1] == 0 && input[i][j][2] == 0) {
+        printf("cell detected at (%i,%i)\n",i,j);
         int cross_size = 9;
         int cross_thickness = 1;
         for (int k = -cross_size; k <= cross_size; k++) {
