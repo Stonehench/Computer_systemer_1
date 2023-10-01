@@ -7,6 +7,8 @@
 #include "cbmp.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 int capture_area = 14;
@@ -178,6 +180,10 @@ void red_cross(unsigned char input[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS],
 
 // Main function
 int main(int argc, char **argv) {
+  clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
   // Checking that 2 arguments are passed
   if (argc != 3) {
     fprintf(stderr, "Usage: %s <output file path> <output file path>\n",
@@ -214,6 +220,16 @@ int main(int argc, char **argv) {
   // Save image to file
   write_bitmap(output_image, argv[2]);
 
+  /* The code that has to be measured. */
+  end = clock();
+  cpu_time_used = end - start;
+  
+  printf("Total time: %f ms\n", cpu_time_used * 1000.0 /
+  CLOCKS_PER_SEC);
+
   printf("Done!\n");
   return 0;
 }
+
+
+
