@@ -209,7 +209,7 @@ void capture(unsigned char detect_spots[BMP_WIDTH][BMP_HEIGHT]) {
       }
       if (lock) {
         capture_part_2(i, j, detect_spots);
-        j += capture_area - 1;
+        j += capture_area - 2;
       }
     }
   }
