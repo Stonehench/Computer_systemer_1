@@ -106,7 +106,8 @@ int calculateOtsuThreshold(unsigned char bitmap[BMP_WIDTH][BMP_HEIGHT]) {
 void threshold(unsigned char greyscale_image[BMP_WIDTH][BMP_HEIGHT],
                unsigned char binary_image[BMP_WIDTH][BMP_HEIGHT],
                unsigned char Otsu_image[BMP_WIDTH][BMP_HEIGHT]) {
-  int thresholdInt = calculateOtsuThreshold(Otsu_image);
+  // int thresholdInt = calculateOtsuThreshold(Otsu_image);
+  int thresholdInt = 90;
   free(Otsu_image);
   for (int x = 0; x < BMP_WIDTH; x++) {
     for (int y = 0; y < BMP_HEIGHT; y++) {
@@ -327,7 +328,7 @@ int main(int argc, char **argv) {
   threshold(bitmap2D_1, bitmap2D_2, bitmap2D_3);
 
   // Compute the distance transform and watershed segmentation on the binary 2D bitmap
-  watershed_segmentation(bitmap2D_2);
+  //watershed_segmentation(bitmap2D_2);
 
   // Erode the binary 2D bitmap
   erode(bitmap2D_1, bitmap2D_2);
